@@ -59,7 +59,7 @@ class AuthController extends Controller
     }
 
 
-    public function medoo()
+    public function inventario()
     {
         $this->db = 'billar';
         $this->table = isset($params['table']) ? $params['table'] : null ;
@@ -137,15 +137,6 @@ class AuthController extends Controller
             $passwordSql = $row->password;
         }
 
-        $this->medoo();
-
-        $from  = 'precio';
-        $fields = '*';
-        $where =  [
-            
-        ];
-
-        $info = $this->database->select($from, $fields, $where);
 
     
         if ($count > 0) {
@@ -157,7 +148,6 @@ class AuthController extends Controller
                     'status' => true,
                     'message' => "Auth Success",
                     'result' => $result,
-                    'info' => $info,
                     'token' => $this->jwt($result)
                 ], 200);
             } else {

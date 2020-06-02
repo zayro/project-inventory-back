@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
+use PDOException;
 
 class Handler extends ExceptionHandler
 {
@@ -49,6 +51,23 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        if ($exception instanceof NotFoundHttpException){
+            return response()->json(['message' => "this route itn't exist ", "status" => false], 404);
+            //return response('Resource not found', 404);
+        }
+
+        if ($exception instanceof PDOException){
+            return response()->json([
+                'message' => "Error PDOException ",
+                 'getMessage' => $exception->getMessage(),
+                 'getFile' => $exception->getFile(),
+                 'getCode' => $exception->getCode(),
+                 'getLine' => $exception->getLine(),
+                 'status' => false], 500);
+            //return response('Resource not found', 404);
+        }
+        
+
         return parent::render($request, $exception);
     }
 }

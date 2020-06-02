@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 
-use tibonilab\Pdf\PdfFacade as PDF; 
+use tibonilab\Pdf\PdfFacade as PDF;
 use Mpdf\Mpdf;
+use App\Exceptions\Handle;
 
 use App\Http\Controllers\Controller;
 
@@ -95,12 +96,10 @@ class GeneralController extends Controller
         }
 
         if (isset($orderAsc)) {
-            
             $condition['ORDER'] = [$orderAsc => 'ASC'];
         }
 
         if (isset($orderDesc)) {
-            
             $condition['ORDER'] = [$orderDesc => 'DESC'];
         }
 
@@ -108,7 +107,7 @@ class GeneralController extends Controller
         
         if (!empty($this->field)) {
             $condition[$this->field] = $this->condition;
-        } 
+        }
 
 
         $result = $this->database->select($this->table, $fields, $condition);
@@ -132,25 +131,59 @@ class GeneralController extends Controller
         $field = $request->input('field');
 
         $condition = false;
-
-
-
      
         $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
 
         if (!empty($this->field)) {
             $condition[$this->field] = $this->condition;
-        } 
-        
+        }
 
-
-
-        $result = $this->database->select($this->table, $fields, $condition);
-        
+        $result = $this->database->select($this->table, $fields, $condition);        
         
         
         return $this->handlers($result);
     }
+
+    public function filterLike(Request $request)
+    {
+
+        $field = $request->input('field');
+     
+        $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
+
+        $condition = false;     
+        
+        if (!empty($this->field)) {            
+            $condition[$this->field.'[~]'] = $this->condition;
+        }
+
+        $result = $this->database->select($this->table, $fields, $condition);
+               
+        
+        return $this->handlers($result);
+    }
+
+    public function filterLikeSearch(Request $request)
+    {
+
+        $field = $request->input('field');
+     
+        $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
+
+        $condition = false;     
+        
+        if (!empty($this->field)) {            
+            $condition[$this->field.'[~]'] = $request->input('search');
+        }
+
+        $result = $this->database->select($this->table, $fields, $condition);
+               
+        
+        return $this->handlers($result);
+    }
+
+
+
     /**
      * GUARDAR.
      *
@@ -190,32 +223,25 @@ class GeneralController extends Controller
     public function create_autoincrement(Request $request)
     {
         $insert = $request->input('insert');
-        $values = $request->input('values');      
+        $values = $request->input('values');
 
         if (count($values) == 1) {
-            
             $result = $this->database->insert($insert, $values[0]);
         } else {
-
-
             $result = $this->database->insert($insert, $create);
         }
 
 
         return $this->handlers($result);
-    }    
+    }
 
 
     public function create_data($request)
     {
-
-        
         if (count($request['values']) == 1) {
-
             $request['values'][0][$request['increment']] = $this->database->max($request['insert'], $request['increment']) + 1;
 
             $result = $this->database->insert($request['insert'], $request['values'][0]);
-
         } else {
             $autoIncrement = $this->database->max($request['insert'], $request['increment']) + 1;
             $i = 0;
@@ -232,8 +258,7 @@ class GeneralController extends Controller
 
 
         return $this->handlers($result);
-        
-    } 
+    }
 
     /**
      * ACTUALIZAR.
@@ -300,6 +325,17 @@ class GeneralController extends Controller
         }
     }
 
+    //public function delete($table, $field, $id)
+    public function delete(Request $request, $table, $field, $id)
+    {
+        $where[$field] = $id;
+
+        $result = $this->database->delete($this->table, $where);
+
+        return $this->handlers($result);
+    }
+
+
     /**
      * SELECT
      */
@@ -328,49 +364,47 @@ class GeneralController extends Controller
             //$request->file('photo')->move($request->input('path'));
             $request->file('file')->move($request->input('path'), $fileName);
             return response()->json(['message' => 'file is upload', "status" => true], 201);
-        } else  {
+        } else {
             return response()->json(['message' => 'file is not upload', "status" => false], 406);
         }
-    }    
+    }
 
     /**
      * uploadInsert
      */
     public function uploadInsert(Request $request)
     {
-
-        $response = json_decode($request->input('insert'), true, JSON_UNESCAPED_SLASHES);        
+        $response = json_decode($request->input('insert'), true, JSON_UNESCAPED_SLASHES);
 
         if ($request->file('file')->isValid()) {
-            $fileName = $request->file('file')->getClientOriginalName();            
-            //$request->file('file')->move($request->input('path'), $fileName);          
+            $fileName = $request->file('file')->getClientOriginalName();
+            //$request->file('file')->move($request->input('path'), $fileName);
  
     
             $response['values'][0]['file'] = $fileName;
-            $response['values'][0]['binary'] = base64_encode(file_get_contents($request->file('file')));  
+            $response['values'][0]['binary'] = base64_encode(file_get_contents($request->file('file')));
             $response['values'][0]['path'] = $request->input('path');
 
            
-            $data = file_get_contents($request->file('file'));  
+            $data = file_get_contents($request->file('file'));
 
-            $base64 = 'data:image/' . $request->file('file')->getClientMimeType() . ';base64,' . base64_encode($data);  
+            $base64 = 'data:image/' . $request->file('file')->getClientMimeType() . ';base64,' . base64_encode($data);
             
             $this->create_data($response);
 
             return response()->json(['message' => 'file is upload', "status" => true], 201);
-        } else  {
+        } else {
             return response()->json(['message' => 'file is not upload', "status" => false], 406);
-        }        
+        }
         
         return response()->json([
           "response" => $response,
           "responses" => $response->insert,
           "status" => true], 200);
-    }    
+    }
     
-    public function createPdf() {
-
-
+    public function createPdf()
+    {
         $html = '<h1> hioa </h1>';
         //return PDF::load($html, 'A4', 'portrait')->show();
 
@@ -385,12 +419,10 @@ class GeneralController extends Controller
         return  $mpdf->Output();
     }
 
-    public function viewPdf() {
-
+    public function viewPdf()
+    {
         include './test/medoo.php';
-
-        
-    }    
+    }
     
     
     /**

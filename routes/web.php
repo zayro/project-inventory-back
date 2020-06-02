@@ -49,7 +49,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'jwt.auth'], function () {
     
 
     Route::put('/{db}/edit/', 'GeneralController@edit');
-    Route::delete('/{db}/destroy/', 'GeneralController@destroy');
+    Route::delete('/{db}/destroy/{table}/{field}/{id}', 'GeneralController@destroy');
 
 
     /**
@@ -70,6 +70,10 @@ $router->group(['prefix' => 'unsafe'], function () {
     Route::get('/{db}/field/{table}/', 'GeneralController@field');
     Route::get('/{db}/filters/{table}/{field}/{condition}', 'GeneralController@filter');
     Route::get('/{db}/filter/{table}/', 'GeneralController@filter');
+    Route::get('/{db}/filterLike/{table}/{field}/{condition}', 'GeneralController@filterLike');
+    Route::get('/{db}/filterLikeSearch/{table}/{field}', 'GeneralController@filterLikeSearch');
+    
+    
 
     Route::post('/{db}/select', 'GeneralController@select');
     Route::post('/{db}/upload', 'GeneralController@upload');
@@ -78,10 +82,12 @@ $router->group(['prefix' => 'unsafe'], function () {
     Route::post('/{db}/create/', 'GeneralController@create');
 
     Route::put('/{db}/edit/', 'GeneralController@edit');
-    Route::post('/{db}/destroy/', 'GeneralController@destroy');
+    Route::delete('/{db}/destroy/{table}/{field}/{id}', 'GeneralController@delete');
 
     Route::post('/file/createFolder/', 'file@crear_carpeta');
     Route::post('/file/deleteFolder/', 'file@eliminar_carpeta');
+
+    
 });
 
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Medoo\Medoo;
 use PDO;
+use PDOException;
+use Throwable;
 
 class Controller extends BaseController
 {
@@ -54,6 +56,12 @@ class Controller extends BaseController
         $this->database = new Medoo($default);
     }
 
+
+    public function inventario()
+    {
+
+        $this->connect('inventario');
+    }
     /**
      * MANEJADOR.
      *

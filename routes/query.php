@@ -19,3 +19,13 @@ $router->group(['prefix' => 'query'], function () {
 
 });
 
+
+
+$router->group(['prefix' => 'proccess'], function () {
+
+
+    Route::post('/create/invoice/', 'ProcessController@invoice');
+
+});
+
+
