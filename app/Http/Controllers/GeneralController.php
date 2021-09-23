@@ -41,7 +41,7 @@ class GeneralController extends Controller
     public function __construct(Request $request)
     {
         $this->request = $request;
-     
+
         list($found, $routeInfo, $params) = $request->route() ?: [false, [], []];
 
         $this->db = isset($params['db']) ? $params['db'] : null ;
@@ -52,7 +52,7 @@ class GeneralController extends Controller
 
         $this->connect($this->db);
     }
-   
+
     /**
      *
      */
@@ -60,12 +60,12 @@ class GeneralController extends Controller
     {
         // DB::select("SELECT * FROM users");
         //$this->database->select("users", "*");
-       
+
         $result = $this->database->select($this->table, '*');
 
         return $this->handlers($result);
     }
-    
+
 
     /**
      *
@@ -83,11 +83,11 @@ class GeneralController extends Controller
         $field = $request->input('field');
 
 
-     
+
         $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
 
         $condition = false;
-        
+
 
 
         if (isset($limit)) {
@@ -103,17 +103,17 @@ class GeneralController extends Controller
             $condition['ORDER'] = [$orderDesc => 'DESC'];
         }
 
-     
-        
+
+
         if (!empty($this->field)) {
             $condition[$this->field] = $this->condition;
         }
 
 
         $result = $this->database->select($this->table, $fields, $condition);
-        
-        
-        
+
+
+
         return $this->handlers($result);
     }
 
@@ -131,16 +131,16 @@ class GeneralController extends Controller
         $field = $request->input('field');
 
         $condition = false;
-     
+
         $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
 
         if (!empty($this->field)) {
             $condition[$this->field] = $this->condition;
         }
 
-        $result = $this->database->select($this->table, $fields, $condition);        
-        
-        
+        $result = $this->database->select($this->table, $fields, $condition);
+
+
         return $this->handlers($result);
     }
 
@@ -148,18 +148,18 @@ class GeneralController extends Controller
     {
 
         $field = $request->input('field');
-     
+
         $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
 
-        $condition = false;     
-        
-        if (!empty($this->field)) {            
+        $condition = false;
+
+        if (!empty($this->field)) {
             $condition[$this->field.'[~]'] = $this->condition;
         }
 
         $result = $this->database->select($this->table, $fields, $condition);
-               
-        
+
+
         return $this->handlers($result);
     }
 
@@ -167,20 +167,44 @@ class GeneralController extends Controller
     {
 
         $field = $request->input('field');
-     
+
         $fields = isset($field) ?  explode(',', trim($request->input('field'))) : '*' ;
 
-        $condition = false;     
-        
-        if (!empty($this->field)) {            
+        $condition = false;
+
+        if (!empty($this->field)) {
             $condition[$this->field.'[~]'] = $request->input('search');
         }
 
         $result = $this->database->select($this->table, $fields, $condition);
-               
-        
+
+
         return $this->handlers($result);
     }
+
+    public function filterLikeMultiple(Request $request)
+    {
+
+        $field = $request->input('filter');
+
+        $fields = isset($field) ?  explode(',', trim($request->input('filter'))) : '*' ;
+
+        $condition = false;
+
+        if (!empty($this->field)) {
+
+            foreach ($fields as $row){
+                $condition[$this->row.'[~]'] = $request->input('search');
+            }
+
+        }
+
+        $result = $this->database->select($this->table, '*', $condition);
+
+
+        return $this->handlers($result);
+    }
+
 
 
 
@@ -280,7 +304,7 @@ class GeneralController extends Controller
             'set' => 'required',
             'where' => 'required',
         ]);
-     
+
 
         if ($validator->passes()) {
             //TODO Handle your data
@@ -311,7 +335,7 @@ class GeneralController extends Controller
             'delete' => 'required',
             'where' => 'required',
         ]);
-     
+
 
         if ($validator->passes()) {
             //TODO Handle your data
@@ -349,8 +373,8 @@ class GeneralController extends Controller
         $where = $request->input('where');
 
         $result = $this->database->select($from, $fields, $where);
-        
-        
+
+
         return $this->handlers($result);
     }
 
@@ -379,30 +403,30 @@ class GeneralController extends Controller
         if ($request->file('file')->isValid()) {
             $fileName = $request->file('file')->getClientOriginalName();
             //$request->file('file')->move($request->input('path'), $fileName);
- 
-    
+
+
             $response['values'][0]['file'] = $fileName;
             $response['values'][0]['binary'] = base64_encode(file_get_contents($request->file('file')));
             $response['values'][0]['path'] = $request->input('path');
 
-           
+
             $data = file_get_contents($request->file('file'));
 
             $base64 = 'data:image/' . $request->file('file')->getClientMimeType() . ';base64,' . base64_encode($data);
-            
+
             $this->create_data($response);
 
             return response()->json(['message' => 'file is upload', "status" => true], 201);
         } else {
             return response()->json(['message' => 'file is not upload', "status" => false], 406);
         }
-        
+
         return response()->json([
           "response" => $response,
           "responses" => $response->insert,
           "status" => true], 200);
     }
-    
+
     public function createPdf()
     {
         $html = '<h1> hioa </h1>';
@@ -413,9 +437,9 @@ class GeneralController extends Controller
         $html = file_get_contents('./view/certificado.php');
 
         //$html = utf8_encode($html);
-        
+
         $mpdf->WriteHTML($html);
-        
+
         return  $mpdf->Output();
     }
 
@@ -423,8 +447,8 @@ class GeneralController extends Controller
     {
         include './test/medoo.php';
     }
-    
-    
+
+
     /**
      * MANEJADOR.
      *
